@@ -50,19 +50,41 @@ matrix_edge_v3 = [
 ]
 
 matrix_edge_v4 = [
-        [0, 0, -1, 0, 0],
-        [0, 0, -1, 0, 0],
-        [-1, -1, 8, -1, -1],
-        [0, 0, -1, 0, 0],
-        [0, 0, -1, 0, 0]
+        [-1, -1, -1],
+        [-1, 8, -1],
+        [-1, -1, -1],
 ]
 
-matrix_blur = [
+matrix_edge_v5 = [
+        [-0.125, -0.125, -0.125],
+        [-0.125, 1, -0.125],
+        [-0.125, -0.125, -0.125],
+]
+
+matrix_blur_v1 = [
         [0, 0, 0, 0, 0],
         [0, 1, 1, 1, 0],
         [0, 1, 1, 1, 0],
         [0, 1, 1, 1, 0],
         [0, 0, 0, 0, 0]
+]
+
+matrix_blur_v2 = [
+        [0, 1, 0],
+        [1, 1, 1],
+        [0, 1, 0],
+]
+
+matrix_emboss_v1 = [
+        [-1, -1, 0],
+        [-1, 0, 1],
+        [0, 1, 1]
+]
+
+matrix_sharpen_v1 = [
+        [-1, -1, -1],
+        [-1, 9, -1],
+        [-1, -1, -1],
 ]
 
 COLOR_SPACE_INVALID = 0
@@ -202,13 +224,27 @@ class Image(object):
         return new_img
 
     def detect_edge(self):
-        edge_kernel = np.array(matrix_edge_v1)
+        print "Detecting edge"
+        edge_kernel = np.array(matrix_edge_v5)
         new_img = self.convolution(edge_kernel)
         return new_img
 
     def blur(self):
-        blur_kernel = np.array(matrix_blur)
+        print "Blurring image"
+        blur_kernel = np.array(matrix_blur_v2)
         new_img = self.convolution(blur_kernel)
+        return new_img
+
+    def emboss(self):
+        print "Emboss image"
+        emboss_kernel = np.array(matrix_emboss_v1)
+        new_img = self.convolution(emboss_kernel)
+        return new_img
+
+    def sharpen(self):
+        print "Sharpen image"
+        sharpen_kernel = np.array(matrix_sharpen_v1)
+        new_img = self.convolution(sharpen_kernel)
         return new_img
 
 if __name__ == "__main__":
