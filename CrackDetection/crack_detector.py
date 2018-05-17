@@ -1,12 +1,13 @@
 import cv2
 import numpy as np
 import sys
+import imutils
+from imutils import perspective
 import matplotlib.pyplot as plt
 
 WIDTH=640
 HEIGHT=480
 ESC=27
-
 def show(img, name=''):
     cv2.imshow(name, img)
     cv2.waitKey(0)
@@ -37,6 +38,10 @@ class CrackDetector(object):
         def minOnChange(value):
             print("Min:", value)
 
+        minWidth = self.img.shape[0]/10
+        minHeight = self.img.shape[1]/10
+
+
         if show:
             winName = 'canny'
             cv2.namedWindow(winName)
@@ -56,7 +61,25 @@ class CrackDetector(object):
                 edges = cv2.Canny(self.img, minVal, maxVal)
                 cv2.imshow(winName, edges)
         else:
-            self.img = cv2.Canny(self.img, thresholdMin, thresholdMax)
+            edges = cv2.Canny(self.img, thresholdMin, thresholdMax)
+
+        cv2.destroyAllWindows()
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))
+        self.img = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+
+        boxes = []
+        #(_, contours, _) = cv2.findContours(edges.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        (_, contours, _) = cv2.findContours(self.img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for c in contours:
+            (w, h) = cv2.boundingRect(c)[2:]
+            if w < minWidth and h < minHeight:
+                continue
+
+            rect = cv2.minAreaRect(c)
+            box = np.int0(cv2.boxPoints(rect))
+            boxes.append(box)
+        return boxes
 
     def show(self, name=''):
         cv2.imshow(name, self.img)
@@ -79,7 +102,15 @@ detector.normalize()
 detector.show('normalize')
 
 # edge detection
-detector.canny(show=True, winName='Crack detector')
+boxes = detector.canny(show=True, winName='Crack detector')
+detector.show('edge')
+
+print(boxes)
+output = np.copy(detector.origImg)
+for b in boxes:
+    output = cv2.rectangle(output, tuple(b[0]), tuple(b[2]), (0, 255, 0), 4)
+
+show(output, 'output')
 
 #ret, otsu = cv2.threshold(img, 20, 205, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
 #show(otsu, 'otsu')
